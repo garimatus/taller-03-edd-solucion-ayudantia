@@ -1,6 +1,17 @@
+#ifndef DOSIS_H
+#define DOSIS_H
+
 #include <string>
 
 
+struct Stock {
+    const char* tipo;
+    int cantidad;
+    int min;
+    int max;
+};
+
+const Stock stock[3] = {{"Sinovac", 90, 18, 80}, {"Pfizer", 120, 15, 55}, {"AstraZeneca", 70, 18, 420}};
 
 class Dosis {
     private :
@@ -25,4 +36,4 @@ class Dosis {
         bool get_disponibilidad();
 };
 
-
+#endif

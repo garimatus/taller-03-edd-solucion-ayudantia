@@ -11,14 +11,25 @@ Run::~Run() {
 
 Run::Run(std::string rut) {
 
-    this -> rut = rut;
+    if (validarRun(rut)) {
+        this -> rut = rut;
+    } else {
+        this -> rut = "\0";
+    }
 }
 
-void Run::setRunAsString(std::string rut) {
-    this -> rut = rut;
+bool Run::setRunAsString(std::string rut) {
+    
+    if (validarRun(rut)) {
+        this -> rut = rut;
+        return true;
+    } else {
+        return false;
+    }
 }
 
-void Run::setRunAsNumber(long int rut, int dv) {
+bool Run::setRunAsNumber(long int rut, int dv) {
+    
     this -> rut = std::to_string(rut);
 
     this -> rut = this -> rut + std::to_string(dv);
@@ -30,8 +41,7 @@ std::string Run::getRun() {
 
 int Run::getDvAsInt() {
     
-    /* ¡ Convertir el últ. caracter a integer !
-    return std::stoi(this -> rut[this -> rut.length()-1]); */
+    // Por implementar ...
 }
 
 char Run::getDvAsChar() {

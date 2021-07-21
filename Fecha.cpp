@@ -87,7 +87,7 @@ bool Fecha::validarFechaAsString(std::string fecha) {
 
         if (existeMes) {
             
-            if(anyio%400 == 0 || (anyio%4 == 0 && anyio%100 != 0) && i == 1) {
+            if((anyio%400 == 0 || (anyio%4 == 0 && anyio%100 != 0)) && i == 1) {
                 
                 if (stoi(items.at(2)) <= 29 && stoi(items.at(2)) > 0) {
                     existeDia = true;

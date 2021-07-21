@@ -8,22 +8,15 @@
 #include "./Inoculacion.h"
 
 
-// HEADER
-void informarFechaActual(Fecha fecha);
-int cargarBaseDeDatos(std::istream& lectura, Lista<Paciente>& BddNoRelacional);
-void resultadoCargaDeDatosPacientes(Lista<Paciente> LLS2, bool todos);
-void crearDosis(Lista<Dosis>& listaDosis);
-void iniciarVacunacion(Lista<Inoculacion>& listaInoculacion, Lista<Paciente>& listaPaciente, Lista<Dosis>& listaDosis, Fecha hoy);
-void consultarPaciente(Lista<Paciente> listaPaciente, Lista<Inoculacion> listaInoculacion);
+// Header (Estas funciones están debajo de main).
+void informarFechaActual(Fecha);
+int cargarBaseDeDatos(std::istream&, Lista<Paciente>&);
+void resultadoCargaDeDatosPacientes(Lista<Paciente>, bool);
+void crearDosis(Lista<Dosis>&);
+void iniciarVacunacion(Lista<Inoculacion>&, Lista<Paciente>&, Lista<Dosis>&, Fecha);
+void consultarPaciente(Lista<Paciente>, Lista<Inoculacion>);
 
-struct Stock {
-    const char* tipo;
-    int cantidad;
-    int min;
-    int max;
-};
 
-const Stock stock[3] = {{"Sinovac", 90, 18, 80}, {"Pfizer", 120, 15, 55}, {"AstraZeneca", 70, 18, 420}};
 
 int main(int argc, char** argv) {
     
@@ -72,7 +65,7 @@ int main(int argc, char** argv) {
              * (e) Iniciar vacunación:
              */
             iniciarVacunacion(LLS1, LLS2, LLS3, hoy);
-            //resultadoCargaDeDatosPacientes(LLS2);
+
 
             /**
              * (f) Consultar paciente
@@ -88,10 +81,10 @@ int main(int argc, char** argv) {
 
         } else {
             std::cout << "\033[1;31m" << cantidadPacientes << " Pacientes válidos para la vacunación.\033[0m" << std::endl;
+            return 1;
         }
 
     } else {
-        
         std::cout << "\033[1;31mNo se pudo leer el archivo necesario para la ejecución.\033[0m" << std::endl;
         return 1;
     }
@@ -123,9 +116,7 @@ int cargarBaseDeDatos(std::istream& lectura, Lista<Paciente>& BddNoRelacional) {
             
             if (columnaNumero == 0) {
                 
-                if (rut.validarRun(columna)) {
-                    rut.setRunAsString(columna);
-                } else {
+                if (!rut.setRunAsString(columna)) {
                     validacion = false;
                     break;
                 }
@@ -179,28 +170,29 @@ void resultadoCargaDeDatosPacientes(Lista<Paciente> LLS2, bool todos) {
 
     nodo<Paciente>* L = LLS2.get_cabeza();
     
-    std::cout << "  RUN   |   APELLIDOS   |   NOMBRES   |   EDAD   |   SEXO   |   D.O.B.   |   VACUNADO   " << '\n' << std::endl;
+    std::cout << "\033[1;34m RUN | APELLIDOS | NOMBRES | EDAD | SEXO | D.O.B. | INOCULADO/A \033[0m" << std::endl;
     
     while(L != NULL) {
         
         if (L -> instancia.get_inoculacion() || todos) {
+            std::cout << "\033[1;34m_____________________________________________________________________________\033[0m" << std::endl;
             std::cout
-            << L -> instancia.get_run().getRun() << " | "
-            << L -> instancia.get_apellidos() << " | "
-            << L -> instancia.get_nombres() << " | "
-            << L -> instancia.edad() << " | "
-            << L -> instancia.get_genero() << " | "
-            << L -> instancia.get_nacimiento().get_dia() << "/"
-            << L -> instancia.get_nacimiento().get_mes() << "/"
-            << L -> instancia.get_nacimiento().get_anyio() << " | ";
-            if (L -> instancia.get_inoculacion()) { std::cout << "Sí\n"; }
-            else { std::cout << "No\n"; }
-            std::cout << std::endl;
+            << "\033[1;32m" << L -> instancia.get_run().getRun() << "\033[0m \033[1;34m | \033[0m"
+            << "\033[1;32m" << L -> instancia.get_apellidos() << "\033[0m \033[1;34m | \033[0m"
+            << "\033[1;32m" << L -> instancia.get_nombres() << "\033[0m \033[1;34m | \033[0m"
+            << "\033[1;32m" << L -> instancia.edad() << "\033[0m \033[1;34m | \033[0m"
+            << "\033[1;32m" << L -> instancia.get_genero() << "\033[0m \033[1;34m | \033[0m"
+            << "\033[1;32m" << L -> instancia.get_nacimiento().get_dia() << "/"
+            << "\033[1;32m" << L -> instancia.get_nacimiento().get_mes() << "/"
+            << "\033[1;32m" << L -> instancia.get_nacimiento().get_anyio() << "\033[0m \033[1;34m | \033[0m";
+            if (L -> instancia.get_inoculacion()) { std::cout << "\033[1;32m Sí \033[0m" << std::endl; }
+            else { std::cout << "\033[1;31m No \033[0m" << std::endl; }
         }
 
-        
         L = L -> sgte;
     }
+    
+    std::cout << std::endl;
 }
 
 
@@ -242,10 +234,8 @@ void iniciarVacunacion(Lista<Inoculacion>& listaInoculacion, Lista<Paciente>& li
 
     nodo<Dosis>* nodoDosis = listaDosis.get_cabeza();
 
-    int countSinovac = 0;
-    int countPfizer = 0;
-    int countAstraZeneca = 0;
-    
+    int countSinovac = 0, countPfizer = 0, countAstraZeneca = 0;
+    int count0 = 0, count19 = 0, count25 = 0, count35 = 0, count45 = 0, count65 = 0;
     
     while (nodoDosis != NULL) {
 
@@ -318,19 +308,45 @@ void iniciarVacunacion(Lista<Inoculacion>& listaInoculacion, Lista<Paciente>& li
             instanciaDosis.set_disponibilidad(disponibilidadDosis);
             Inoculacion instancia(instanciaDosis, instanciaPaciente, hoy);
             listaInoculacion.add_nodo(instancia);
+
+            if (instanciaPaciente.edad() <= 18)
+                ++count0;
+            
+            if (instanciaPaciente.edad() >= 19 && instanciaPaciente.edad() <= 24)
+                ++count19;
+            
+            if (instanciaPaciente.edad() >= 25 && instanciaPaciente.edad() <= 34)
+                ++count25;
+                
+            if (instanciaPaciente.edad() >= 35 && instanciaPaciente.edad() <= 44)
+                ++count35;
+                
+            if (instanciaPaciente.edad() >= 45 && instanciaPaciente.edad() <= 64)
+                ++count45;
+                
+            if (instanciaPaciente.edad() >= 65)
+                ++count65;
         }
 
         nodoDosis = nodoDosis -> sgte;
     }
 
-    std::cout << "Resultados del proceso de vacunación : " << std::endl;
-    std::cout << "Cantidad de personas vacunadas con Sinovac : " << countSinovac << std::endl;
-    std::cout << "Cantidad de personas vacunadas con Pfizer : " << countPfizer << std::endl;
-    std::cout << "Cantidad de personas vacunadas con AstraZeneca : " << countAstraZeneca << std::endl;
-    std::cout << std::endl;
-    std::cout << "Cantidad de vacunas Sinovac disponibles : " << stock[0].cantidad - countSinovac << std::endl;
-    std::cout << "Cantidad de vacunas Pfizer disponibles : " << stock[1].cantidad - countPfizer << std::endl;
-    std::cout << "Cantidad de vacunas AstraZeneca disponibles : " << stock[2].cantidad - countAstraZeneca << std::endl;
+    std::cout << "\033[1;34m========= ESTADÍSTICOS DEL PROCESO DE VACUNACÓN =========" << std::endl;
+    std::cout << "\033[1;34mCantidad de personas vacunadas con Sinovac :\033[0m \033[1;32m" << countSinovac << "\033[0m" << std::endl;
+    std::cout << "\033[1;34mCantidad de personas vacunadas con Pfizer :\033[0m \033[1;32m" << countPfizer << "\033[0m" << std::endl;
+    std::cout << "\033[1;34mCantidad de personas vacunadas con AstraZeneca :\033[0m \033[1;32m" << countAstraZeneca << "\033[0m" << std::endl;
+    std::cout << "\033[1;34m---------------------------------------------------------" << std::endl;
+    std::cout << "\033[1;34mCantidad de vacunas Sinovac disponibles :\033[0m \033[1;32m" << stock[0].cantidad - countSinovac << "\033[0m" << std::endl;
+    std::cout << "\033[1;34mCantidad de vacunas Pfizer disponibles :\033[0m \033[1;32m" << stock[1].cantidad - countPfizer << "\033[0m" << std::endl;
+    std::cout << "\033[1;34mCantidad de vacunas AstraZeneca disponibles :\033[0m \033[1;32m" << stock[2].cantidad - countAstraZeneca << "\033[0m" << std::endl;
+    std::cout << "\033[1;34m---------------------------------------------------------" << std::endl;
+    std::cout << "\033[1;34mCantidad de personas vacunadas de entre 0 a 18 años :\033[0m \033[1;32m" << count0 << "\033[0m" <<std::endl;
+    std::cout << "\033[1;34mCantidad de personas vacunadas de entre 19 a 24 años :\033[0m \033[1;32m" << count19 << "\033[0m" <<std::endl;
+    std::cout << "\033[1;34mCantidad de personas vacunadas de entre 25 a 34 años :\033[0m \033[1;32m" << count25 << "\033[0m" <<std::endl;
+    std::cout << "\033[1;34mCantidad de personas vacunadas de entre 35 a 44 años :\033[0m \033[1;32m" << count35 << "\033[0m" <<std::endl;
+    std::cout << "\033[1;34mCantidad de personas vacunadas de entre 45 a 64 años :\033[0m \033[1;32m" << count45 << "\033[0m" <<std::endl;
+    std::cout << "\033[1;34mCantidad de personas vacunadas de entre 65 o más :\033[0m " << "\033[1;32m" << count65 << "\033[0m" <<std::endl;
+    std::cout << "\033[1;34m=========================================================\033[0m" << std::endl;
     std::cout << std::endl;
 }
 
@@ -344,7 +360,7 @@ void consultarPaciente(Lista<Paciente> listaPaciente, Lista<Inoculacion> listaIn
     std::cin >> rut;
     bool existePaciente = false, existeInoculacion = false;
 
-    if (instancia.validarRun(rut)) {
+    if (instancia.setRunAsString(rut)) {
 
         instancia.setRunAsString(rut);
         
@@ -365,17 +381,18 @@ void consultarPaciente(Lista<Paciente> listaPaciente, Lista<Inoculacion> listaIn
                         Dosis instanciaDosis = nodoInoculacion -> instancia.get_dosis();
                         
                         std::cout << std::endl;
-                        std::cout << "=== DATOS DEL PACIENTE INOCULADO ===" << std::endl;
-                        std::cout << "RUN : " << instanciaPaciente.get_run().getRun() << std::endl;
-                        std::cout << "APELLIDOS : " << instanciaPaciente.get_apellidos() << std::endl;
-                        std::cout << "NOMBRES : " << instanciaPaciente.get_nombres() << std::endl;
-                        std::cout << "EDAD : " << instanciaPaciente.edad() << std::endl;
-                        std::cout << "SEXO : " << instanciaPaciente.get_genero() << std::endl;
-                        std::cout << "FECHA DE NACIMIENTO : " << instanciaPaciente.get_nacimiento().get_dia() << "/"
+                        std::cout << "\033[1;34m===== DATOS DE EL/LA PACIENTE INOCULADO/A =====\033[0m" << std::endl;
+                        std::cout << "\033[1;34mRUN :\033[0m \033[1;32m" << instanciaPaciente.get_run().getRun() << "\033[0m" << std::endl;
+                        std::cout << "\033[1;34mAPELLIDOS :\033[0m \033[1;32m" << instanciaPaciente.get_apellidos() << "\033[0m" << std::endl;
+                        std::cout << "\033[1;34mNOMBRES :\033[0m \033[1;32m" << instanciaPaciente.get_nombres() << "\033[0m" << std::endl;
+                        std::cout << "\033[1;34mEDAD :\033[0m \033[1;32m" << instanciaPaciente.edad() << "\033[0m" << std::endl;
+                        std::cout << "\033[1;34mSEXO :\033[0m \033[1;32m" << instanciaPaciente.get_genero() << "\033[0m" << std::endl;
+                        std::cout << "\033[1;34mFECHA DE NACIMIENTO : \033[1;32m" << instanciaPaciente.get_nacimiento().get_dia() << "/"
                         << instanciaPaciente.get_nacimiento().get_mes() << "/"
-                        << instanciaPaciente.get_nacimiento().get_anyio() << " (" <<instanciaPaciente.edad() << " años)" << std::endl;
-                        std::cout << "DOSIS : " << instanciaDosis.get_tipo() << std::endl;
-                        std::cout << "ID DE DOSIS : " << instanciaDosis.get_id() << std::endl;
+                        << instanciaPaciente.get_nacimiento().get_anyio() << " (" <<instanciaPaciente.edad() << " años)" "\033[0m" << std::endl;
+                        std::cout << "\033[1;34mDOSIS :\033[0m \033[1;32m" << instanciaDosis.get_tipo() << "\033[0m" << std::endl;
+                        std::cout << "\033[1;34mID DE DOSIS :\033[0m \033[1;32m " << instanciaDosis.get_id() << "\033[0m" << "\033[0m" << std::endl;
+                        std::cout << "\033[1;34m===============================================\033[0m" << std::endl;
                         std::cout << std::endl;
 
                         break;
@@ -392,9 +409,29 @@ void consultarPaciente(Lista<Paciente> listaPaciente, Lista<Inoculacion> listaIn
             nodoPaciente = nodoPaciente -> sgte;
         }
 
+        if (!existePaciente) {
+            
+            std::cout << std::endl;
+            std::cout << "\033[1;31mEl/la paciente ingresado/a no existe dentro de los registros.\033[0m" << std::endl;
+            std::cout << std::endl;
+            
+        } else {
+            
+            if (!existeInoculacion) {
+                std::cout << std::endl;
+                std::cout << "\033[1;31mEl/la paciente ingresado/a no ha sido vacunado/a.\033[0m" << std::endl;
+                std::cout << std::endl;
+            }    
+        }
+        
     } else {
-
-        std::cout << "El Run ingresado no es válido." << std::endl;
+        std::cout << std::endl;
+        std::cout << "\033[1;31mEl Run ingresado no es válido.\033[0m" << std::endl;
+        std::cout << std::endl;
     }
+    
+    char c;
+    std::cout << "Ingrese cualquier caracter y presione Enter para continuar ..." << std::endl;
+    std::cin >> c;
+    std::cout << std::endl;
 }
-

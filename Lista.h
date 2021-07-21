@@ -47,7 +47,7 @@ Lista<T>::Lista(T instancia) {
 template <class T>
 Lista<T>::~Lista() {
     
-    // liberar la lista
+    // Destructor que libera nodo a nodo la lista de forma genérica: while (...) { free ... }
 }
 
 template <class T>

@@ -16,14 +16,14 @@ class Run {
         void setRun(std::string);
         std::string getRun();
         int getDv();
-        bool validarRun(std::string);
         long int getRunAsNumber();
-        void setRunAsString(std::string);
-        void setRunAsNumber(long int, int);
+        bool setRunAsString(std::string);
+        bool setRunAsNumber(long int, int);
         int getDvAsInt();
         char getDvAsChar();
     private : 
         std::string rut;
+        bool validarRun(std::string);
 };
 
 
